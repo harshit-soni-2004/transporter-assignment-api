@@ -1,0 +1,23 @@
+# Build output
+target/
+
+# IDE and Editor files
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+
+# Logs
+*.log
+logs/
+
+# H2 database data files
+*.mv.db
+*.trace.db
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
