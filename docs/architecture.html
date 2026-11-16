@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Architecture Overview — Transporter Assignment API</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: rgba(18, 24, 38, 0.85);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent: #3b82f6;
+      --accent-glow: rgba(59, 130, 246, 0.25);
+      --success: #10b981;
+      --neon-green: #00e599;
+      --render-purple: #9d4edd;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: radial-gradient(circle at top center, #172554 0%, #0b0f19 50%, #030712 100%);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+      padding: 30px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 35px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 14px;
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      color: #93c5fd;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ffffff 40%, #93c5fd 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1100px;
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+
+    .section-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .section-title::before {
+      content: "";
+      width: 4px;
+      height: 20px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    /* Diagram 1: Cloud Architecture Flow */
+    .flow-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      position: relative;
+    }
+
+    @media (max-width: 900px) {
+      .flow-grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: rgba(59, 130, 246, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .card-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+    }
+
+    .icon-client { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+    .icon-render { background: rgba(157, 78, 221, 0.2); color: #c77dff; }
+    .icon-neon { background: rgba(0, 229, 153, 0.2); color: #00e599; }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .card-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .feature-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 0.92rem;
+    }
+
+    .feature-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      color: #cbd5e1;
+    }
+
+    .bullet {
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      background: rgba(255, 255, 255, 0.07);
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: #93c5fd;
+    }
+
+    /* Arrow Connector */
+    .arrow-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #60a5fa;
+      font-size: 1.8rem;
+      font-weight: bold;
+    }
+
+    /* Diagram 2: Layered Stack */
+    .layers-container {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .layer-card {
+      background: var(--card-bg);
+      border-left: 5px solid var(--accent);
+      border: 1px solid var(--card-border);
+      border-left-width: 5px;
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      backdrop-filter: blur(10px);
+    }
+
+    .layer-1 { border-left-color: #3b82f6; }
+    .layer-2 { border-left-color: #8b5cf6; }
+    .layer-3 { border-left-color: #f59e0b; }
+    .layer-4 { border-left-color: #10b981; }
+
+    .layer-info {
+      flex: 1;
+    }
+
+    .layer-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .layer-desc {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+    }
+
+    .layer-components {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      padding: 4px 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-family: monospace;
+      color: #e2e8f0;
+    }
+
+    footer {
+      margin-top: 35px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="badge">FreightFox Backend Assignment</div>
+    <h1>Transporter Assignment on Lanes</h1>
+    <p class="subtitle">System Architecture & Production Cloud Infrastructure</p>
+  </header>
+
+  <main class="container">
+
+    <!-- Section 1: Cloud Architecture -->
+    <section>
+      <div class="section-title">1. High-Level Cloud & Infrastructure Topology</div>
+      <div class="flow-grid">
+        
+        <!-- Client -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon icon-client">🌐</div>
+            <div>
+              <div class="card-title">Client Layer</div>
+              <div class="card-subtitle">Public Internet / Consumers</div>
+            </div>
+          </div>
+          <ul class="feature-list">
+            <li><span class="bullet">▸</span> <strong>Interactive Swagger UI:</strong> Live testing at <span class="pill">/swagger-ui.html</span></li>
+            <li><span class="bullet">▸</span> <strong>REST Clients:</strong> curl, Postman, automated smoke tests</li>
+            <li><span class="bullet">▸</span> <strong>Health Probe:</strong> Proactive monitoring at <span class="pill">/health</span></li>
+          </ul>
+        </div>
+
+        <!-- Render App -->
+        <div class="card" style="border-color: rgba(157, 78, 221, 0.35);">
+          <div class="card-header">
+            <div class="card-icon icon-render">⚡</div>
+            <div>
+              <div class="card-title">Render Cloud</div>
+              <div class="card-subtitle">Dockerized Web Service (US East)</div>
+            </div>
+          </div>
+          <ul class="feature-list">
+            <li><span class="bullet">▸</span> <strong>Edge:</strong> Cloudflare TLS termination (HTTPS:443)</li>
+            <li><span class="bullet">▸</span> <strong>Runtime:</strong> Java 17 Eclipse Temurin (Tomcat :10000)</li>
+            <li><span class="bullet">▸</span> <strong>Low-Memory Tuning:</strong> <span class="pill">-XX:+UseSerialGC</span> and <span class="pill">MaxRAM=70%</span></li>
+            <li><span class="bullet">▸</span> <strong>Spring Boot 3.3.0:</strong> Production profile <span class="pill">prod</span></li>
+          </ul>
+        </div>
+
+        <!-- Neon Postgres -->
+        <div class="card" style="border-color: rgba(0, 229, 153, 0.35);">
+          <div class="card-header">
+            <div class="card-icon icon-neon">🐘</div>
+            <div>
+              <div class="card-title">Neon Serverless DB</div>
+              <div class="card-subtitle">PostgreSQL 18 (AWS us-east-1)</div>
+            </div>
+          </div>
+          <ul class="feature-list">
+            <li><span class="bullet">▸</span> <strong>Project:</strong> <span class="pill">transporter-db</span></li>
+            <li><span class="bullet">▸</span> <strong>Security:</strong> Direct TLS connection (<span class="pill">sslmode=require</span>)</li>
+            <li><span class="bullet">▸</span> <strong>Pooling:</strong> HikariCP high-performance connection pool</li>
+            <li><span class="bullet">▸</span> <strong>Schema:</strong> Relational entities with Cascade and Foreign Keys</li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Section 2: Software Layers -->
+    <section>
+      <div class="section-title">2. Software Modular Decoupling (4-Tier Separation)</div>
+      <div class="layers-container">
+        
+        <!-- Presentation Layer -->
+        <div class="layer-card layer-1">
+          <div class="layer-info">
+            <div class="layer-name">1. Presentation / HTTP Layer</div>
+            <div class="layer-desc">REST routing, Bean Validation constraints, and global exception mapping</div>
+          </div>
+          <div class="layer-components">
+            <span class="tag">TransporterController</span>
+            <span class="tag">HealthController</span>
+            <span class="tag">GlobalExceptionHandler</span>
+            <span class="tag">@Valid</span>
+          </div>
+        </div>
+
+        <!-- Business Layer -->
+        <div class="layer-card layer-2">
+          <div class="layer-info">
+            <div class="layer-name">2. Business Orchestration Layer</div>
+            <div class="layer-desc">Atomic database transaction management, business rule enforcement, and matrix conversion</div>
+          </div>
+          <div class="layer-components">
+            <span class="tag">TransporterService</span>
+            <span class="tag">@Transactional</span>
+            <span class="tag">costMatrix[t][l]</span>
+          </div>
+        </div>
+
+        <!-- Optimization Layer -->
+        <div class="layer-card layer-3">
+          <div class="layer-info">
+            <div class="layer-name">3. Pure Algorithm Layer (Isolated POJO)</div>
+            <div class="layer-desc">Zero Spring or JPA dependencies. Exact bitmask enumeration with hardware POPCNT pruning and tie-breaking</div>
+          </div>
+          <div class="layer-components">
+            <span class="tag">AssignmentSolver</span>
+            <span class="tag">2^n Bitmask</span>
+            <span class="tag">POPCNT</span>
+            <span class="tag">computeMinNeeded()</span>
+          </div>
+        </div>
+
+        <!-- Persistence Layer -->
+        <div class="layer-card layer-4">
+          <div class="layer-info">
+            <div class="layer-name">4. Persistence Layer</div>
+            <div class="layer-desc">Spring Data JPA repositories with JOIN FETCH queries to prevent N+1 performance bottlenecks</div>
+          </div>
+          <div class="layer-components">
+            <span class="tag">LaneRepository</span>
+            <span class="tag">TransporterRepository</span>
+            <span class="tag">LaneQuoteRepository</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    Designed & Implemented by Harshit Soni &bull; Transporter Assignment on Lanes
+  </footer>
+
+</body>
+</html>
