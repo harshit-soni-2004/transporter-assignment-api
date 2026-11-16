@@ -21,3 +21,6 @@ logs/
 .DS_Store
 Thumbs.db
 
+# Local notes (excluded from git)
+docs/LOOM_VIDEO_SCRIPT.md
+
